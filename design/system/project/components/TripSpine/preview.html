@@ -1,0 +1,22 @@
+<!-- @dsCard group="Trip" height=520 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>TripSpine — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.TripSpine, { day: 'Day 2 · Tue 17 Nov', title: 'Shibuya / Harajuku', routeColor: 'route-2', stops: [
+      { time: '09:30', place: 'Meiji Jingu', duration: '60 min', price: 'Free', provenance: 'live', reason: 'Quiet before 10:00.', status: 'done', legAfter: { mode: 'walk', label: 'Walk · 11 min' } },
+      { time: '10:45', place: 'Takeshita Street', duration: '75 min', price: '≈ RM 40', provenance: 'est', reason: 'Street food + your anime picks.', status: 'next', legAfter: { mode: 'train', label: 'JR Yamanote · 4 min' } },
+      { time: '12:30', place: 'Shibuya Sky', duration: '70 min', price: 'RM 74', provenance: 'live', reason: 'Booked slot · photography at golden hour moved to 16:40.', status: 'booked' }
+    ] }));
+</script>
+</body>
+</html>

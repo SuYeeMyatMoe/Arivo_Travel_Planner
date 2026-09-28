@@ -1,0 +1,18 @@
+<!-- @dsCard group="Trust" height=100 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>StatusChip — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'row' }, ['confirmed', 'pending', 'booked', 'sandbox', 'offline', 'closed', 'failed'].map(function (t) { return h(A.StatusChip, { key: t, tone: t }); })));
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!-- @dsCard group="Actions" height=150 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Button — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'row' },
+      h(A.Button, null, 'Confirm & pay RM 1,243'),
+      h(A.Button, { variant: 'tonal' }, 'Keep original plan'),
+      h(A.Button, { variant: 'quiet' }, 'Why this?'),
+      h(A.Button, { variant: 'danger' }, 'Cancel booking'),
+      h(A.Button, { disabled: true }, 'Booking needs internet')));
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!-- @dsCard group="Budget Brain" height=200 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BudgetGauge — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.BudgetGauge, { total: 4000, spent: 1620, reserved: 1300, forecast: 3720, currency: 'MYR' }));
+</script>
+</body>
+</html>

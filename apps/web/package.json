@@ -1,0 +1,31 @@
+{
+  "name": "arivo-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5181",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5181",
+    "test": "node --experimental-strip-types --test src/lib/model.test.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource/dm-serif-display": "^5.3.0",
+    "lucide-react": "^0.468.0",
+    "mapbox-gl": "^3.15.0",
+    "maplibre-gl": "^6.11.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.183.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "prettier": "^3.9.9",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

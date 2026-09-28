@@ -1,0 +1,20 @@
+<!-- @dsCard group="Bookings" height=380 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BoardingPassCard — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'stack' },
+      h(A.BoardingPassCard, { kind: 'flight', carrier: 'Duffel Airways · ZZ 812', from: 'KUL', to: 'NRT', depart: '07:30', arrive: '15:20', date: 'Mon 16 Nov · 1 stop · 7h50', reference: 'H92F3K', status: 'confirmed', sandbox: true }),
+      h(A.BoardingPassCard, { kind: 'rail', carrier: 'Tokaido Shinkansen', from: 'Tokyo', to: 'Kyoto', depart: '09:33', arrive: '11:48', date: 'Thu 19 Nov', reference: 'Pending', status: 'pending', note: 'Confirming with supplier — never re-booked automatically.' })));
+</script>
+</body>
+</html>

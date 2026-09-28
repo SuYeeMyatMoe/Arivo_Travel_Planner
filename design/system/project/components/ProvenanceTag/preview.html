@@ -1,0 +1,21 @@
+<!-- @dsCard group="Trust" height=110 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>ProvenanceTag — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'stack' },
+      h('p', { className: 'mono-m' }, '18°C Light rain', h(A.ProvenanceTag, { kind: 'live', source: 'Open-Meteo', updated: '12 min ago' })),
+      h('p', { className: 'mono-m' }, '14 min by train', h(A.ProvenanceTag, { kind: 'est', source: 'Arivo route estimate' })),
+      h('p', { className: 'mono-m' }, 'Budget RM 4,000', h(A.ProvenanceTag, { kind: 'you' }))));
+</script>
+</body>
+</html>

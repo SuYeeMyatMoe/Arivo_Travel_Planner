@@ -1,0 +1,22 @@
+<!-- @dsCard group="Living Trip" height=460 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>ChangeDiff — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.ChangeDiff, { timeDelta: '−1 h 20', budgetDelta: -42, currency: 'MYR', groups: {
+      kept: [{ name: 'Dinner at Uogashi (booked)' }, { name: 'Shibuya Sky 12:30 (booked)' }],
+      moved: [{ name: 'Tokyo National Museum', from: '16:00', to: '13:50' }],
+      removed: [{ name: 'Ueno Park walk', reason: 'Heavy rain 13:40–17:00' }],
+      added: [{ name: 'teamLab Planets', detail: '18 min by train · RM 74' }, { name: 'Ameyoko covered market', detail: 'Street food, indoors' }] } }));
+</script>
+</body>
+</html>

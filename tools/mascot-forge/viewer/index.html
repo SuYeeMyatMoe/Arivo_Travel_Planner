@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ari Viewer</title>
+<style>
+  html,body{margin:0;height:100%;background:#0E1426;color:#FAF7F0;font:14px system-ui}
+  #ui{position:fixed;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;max-width:90vw;z-index:2}
+  button{background:#18203A;color:#FAF7F0;border:1px solid #2a3558;border-radius:8px;padding:6px 10px;cursor:pointer}
+  button.on{background:#C8F53C;color:#10131C}
+  canvas{display:block;width:100vw!important;height:100vh!important}
+</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="ui"></div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+const params = new URLSearchParams(location.search);
+const src = params.get('src') ?? '/assets/mascot/source/miibot_source.glb';
+const bg = params.get('bg') ?? '0E1426';
+const transparent = bg === 'none';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: transparent, preserveDrawingBuffer: true });
+const SIZE = Number(params.get('size') ?? 1024);
+renderer.setPixelRatio(1);
+renderer.setSize(SIZE, SIZE, false);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+if (!transparent) scene.background = new THREE.Color('#' + bg);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const key = new THREE.DirectionalLight(0xfff1dd, 2.2); key.position.set(2, 3, 3); scene.add(key);
+const rim = new THREE.DirectionalLight(0x3ed3f5, 1.6); rim.position.set(-3, 1.5, -2); scene.add(rim);
+
+const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+camera.position.set(0, 0.3, 6);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.1, 0);
+
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+const gltf = await loader.loadAsync(src);
+scene.add(gltf.scene);
+const mixer = new THREE.AnimationMixer(gltf.scene);
+window.__ari = { gltf, mixer, camera, controls, THREE, renderer, scene };
+
+const ui = document.getElementById('ui');
+let current;
+function play(name) {
+  const clip = gltf.animations.find((c) => c.name === name);
+  if (!clip) return;
+  const next = mixer.clipAction(clip);
+  next.reset().play();
+  if (current && current !== next) next.crossFadeFrom(current, 0.35, false);
+  current = next;
+  [...ui.children].forEach((b) => b.classList.toggle('on', b.textContent === name));
+}
+for (const c of gltf.animations) {
+  const b = document.createElement('button'); b.textContent = c.name; b.onclick = () => play(c.name); ui.appendChild(b);
+}
+play(params.get('clip') ?? gltf.animations[0]?.name);
+const view = params.get('view');
+if (view === 'front') camera.position.set(0, 0.3, 6);
+if (view === 'side') camera.position.set(6, 0.3, 0);
+if (view === 'back') camera.position.set(0, 0.3, -6);
+if (view === 'top') camera.position.set(0, 6, 0.01);
+if (view === 'three') camera.position.set(3.6, 1.2, 4.6);
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => { mixer.update(clock.getDelta()); controls.update(); renderer.render(scene, camera); });
+// Pose helper for turnarounds and sprite capture: __ari.pose('front'|'three'|..., clip, timeSeconds)
+window.__ari.pose = (viewName, clipName, time) => {
+  const views = { front: [0, 0.1, 6.2], three: [3.8, 1.3, 4.6], side: [6.2, 0.2, 0], back: [0, 0.2, -6.2], face: [0, 0.45, 3.2], bust: [1.1, 0.75, 4.3], hero: [2.6, 0.5, 5.4] };
+  camera.position.set(...(views[viewName] ?? views.front));
+  controls.target.set(0, { face: 0.45, bust: 0.42, hero: 0.1 }[viewName] ?? 0.05, 0);
+  controls.update();
+  if (clipName) {
+    mixer.stopAllAction();
+    const clip = gltf.animations.find((c) => c.name === clipName);
+    const action = mixer.clipAction(clip); action.reset().play();
+    mixer.setTime(time ?? 0);
+    current = action;
+  }
+  renderer.render(scene, camera);
+  return renderer.domElement.toDataURL('image/png').length;
+};
+// Render a pose and save it on the dev server: await __ari.capture('front', 'idle_float', 0, 'front.png')
+window.__ari.capture = async (viewName, clipName, time, name) => {
+  window.__ari.pose(viewName, clipName, time);
+  const res = await fetch('/capture?name=' + encodeURIComponent(name), { method: 'POST', body: renderer.domElement.toDataURL('image/png') });
+  return res.status;
+};
+</script>
+</body>
+</html>

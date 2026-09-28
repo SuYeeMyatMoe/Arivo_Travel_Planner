@@ -1,0 +1,49 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": { "v": 1, "at": "2026-09-24T09:46:40Z" },
+  "title": "Arivo",
+  "namespace": "Arivo",
+  "libraries": [
+    { "name": "react", "version": "18" },
+    { "name": "react-dom", "version": "18" }
+  ],
+  "sections": {},
+  "groups": ["Mascot"],
+  "assetGroups": {
+    "Mascot": {
+      "name": "Mascot",
+      "tile": "m",
+      "order": [
+        "poster_idle.webp",
+        "poster_excited.webp",
+        "poster_thinking.webp",
+        "poster_pointing.webp",
+        "turn_front.webp",
+        "turn_three.webp",
+        "turn_side.webp",
+        "turn_back.webp",
+        "ari_talking.webp"
+      ],
+      "files": {
+        "poster_idle.webp": { "name": "poster_idle.webp", "blob": "30bdcc54e66130e4b635b9624dadb554", "size": 35188, "type": "image/webp" },
+        "poster_excited.webp": { "name": "poster_excited.webp", "blob": "e795b2fad7cbce96ce44ead460e3cfec", "size": 26460, "type": "image/webp" },
+        "poster_thinking.webp": { "name": "poster_thinking.webp", "blob": "000794c4dc9f5dfafd3577f7c79b6b82", "size": 33728, "type": "image/webp" },
+        "poster_pointing.webp": { "name": "poster_pointing.webp", "blob": "eadfa9abd7cb7495b8389a19045f7457", "size": 36826, "type": "image/webp" },
+        "turn_front.webp": { "name": "turn_front.webp", "blob": "0149151fc99a3cbe83f6ecfe2544269c", "size": 34684, "type": "image/webp" },
+        "turn_three.webp": { "name": "turn_three.webp", "blob": "354bbfb644701800038fe701ac27901f", "size": 32610, "type": "image/webp" },
+        "turn_side.webp": { "name": "turn_side.webp", "blob": "cd27b6d7d9ff646436e17d50201ffaac", "size": 25862, "type": "image/webp" },
+        "turn_back.webp": { "name": "turn_back.webp", "blob": "5d0ed08732d376375a935906a59cc4e5", "size": 25018, "type": "image/webp" },
+        "ari_talking.webp": { "name": "ari_talking.webp", "blob": "58240188c805bc5c2f07d099a7e9249e", "size": 188448, "type": "image/webp" }
+      }
+    }
+  },
+  "blobs": {},
+  "docs": { "readme": "project/README.md", "sections": [] },
+  "lastChange": {
+    "by": "Claude",
+    "via": "Claude Code",
+    "at": "2026-09-24T09:46:40Z",
+    "note": "Created Night Cartography: two themes (paper, ink), 12 travel components, Ari mascot assets, cover."
+  }
+}

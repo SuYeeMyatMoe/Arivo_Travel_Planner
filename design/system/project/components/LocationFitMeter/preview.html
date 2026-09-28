@@ -1,0 +1,18 @@
+<!-- @dsCard group="Stays" height=150 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LocationFitMeter — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.LocationFitMeter, { score: 94, sentence: '8 of your 10 planned stops are under 25 minutes away · 12 min average.' }));
+</script>
+</body>
+</html>

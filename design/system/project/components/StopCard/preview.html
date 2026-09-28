@@ -1,0 +1,21 @@
+<!-- @dsCard group="Trip" height=330 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>StopCard — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h('div', { className: 'stack' },
+      h(A.StopCard, { time: '09:30', place: 'Senso-ji', duration: '75 min', leg: '12 min from hotel', price: 'Free', provenance: 'live', source: 'Official site', reason: 'Best early to avoid heavier crowds.', status: 'next' }),
+      h(A.StopCard, { time: '19:30', place: 'Dinner at Uogashi Nihon-Ichi', duration: '90 min', leg: '8 min walk', price: 'RM 180', provenance: 'you', reason: 'Your reservation — Rescue keeps this fixed.', status: 'booked' }),
+      h(A.StopCard, { time: '14:00', place: 'Ueno Park walk', duration: '60 min', price: 'Free', provenance: 'est', status: 'closed', reason: 'Heavy rain from 13:40 — 2 indoor alternatives nearby.' })));
+</script>
+</body>
+</html>

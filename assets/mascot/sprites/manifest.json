@@ -1,0 +1,47 @@
+{
+  "cell": 256,
+  "columns": 4,
+  "frames": 16,
+  "states": {
+    "idle_float": {
+      "file": "ari_idle_float.webp",
+      "loop": true,
+      "fps": 4
+    },
+    "listening": {
+      "file": "ari_listening.webp",
+      "loop": true,
+      "fps": 5.33
+    },
+    "thinking": {
+      "file": "ari_thinking.webp",
+      "loop": true,
+      "fps": 5.33
+    },
+    "talking": {
+      "file": "ari_talking.webp",
+      "loop": true,
+      "fps": 10
+    },
+    "pointing": {
+      "file": "ari_pointing.webp",
+      "loop": false,
+      "fps": 8
+    },
+    "warning": {
+      "file": "ari_warning.webp",
+      "loop": true,
+      "fps": 8
+    },
+    "excited": {
+      "file": "ari_excited.webp",
+      "loop": false,
+      "fps": 10
+    },
+    "offline": {
+      "file": "ari_offline.webp",
+      "loop": true,
+      "fps": 4
+    }
+  }
+}

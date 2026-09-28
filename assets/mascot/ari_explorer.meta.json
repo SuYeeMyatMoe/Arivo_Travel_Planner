@@ -1,0 +1,68 @@
+{
+  "file": "ari_explorer.glb",
+  "bytes": 691880,
+  "states": [
+    "idle_float",
+    "listening",
+    "thinking",
+    "talking",
+    "pointing",
+    "warning",
+    "excited",
+    "offline"
+  ],
+  "clipDurations": {
+    "idle_float": 4,
+    "listening": 3,
+    "thinking": 3,
+    "talking": 1.6,
+    "pointing": 2,
+    "warning": 2,
+    "excited": 1.6,
+    "offline": 4
+  },
+  "morphTargets": {
+    "EyeL": [
+      "blink",
+      "happy",
+      "lookUp",
+      "concerned",
+      "sleepy",
+      "wide"
+    ],
+    "EyeR": [
+      "blink",
+      "happy",
+      "lookUp",
+      "concerned",
+      "sleepy",
+      "wide"
+    ],
+    "Mouth": [
+      "talk",
+      "frown",
+      "flat",
+      "ooh",
+      "grin"
+    ]
+  },
+  "nodes": [
+    "Ari",
+    "Body",
+    "Hat",
+    "Beacon",
+    "ScarfTails",
+    "Compass",
+    "Needle",
+    "Face",
+    "EyeL",
+    "EyeR",
+    "Mouth"
+  ],
+  "attribution": {
+    "title": "Ari — Arivo explorer mascot",
+    "derivedFrom": "Miibot 3D Model by itsmejhade (https://sketchfab.com/3d-models/miibot-3d-model-7606b66321934033a5dcfecf0f7925e5)",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "changes": "Added explorer hat, boarding pass, signal beacon, scarf, compass emblem, expressive face and animation clips (Arivo)."
+  }
+}

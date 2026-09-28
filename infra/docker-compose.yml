@@ -1,0 +1,26 @@
+# Local stack: API + Redis. Postgres/Auth come from `npx supabase start` (see README).
+# docker compose -f infra/docker-compose.yml up --build
+services:
+  api:
+    build:
+      context: ../services/api
+      additional_contexts:
+        seed: ../supabase/seed
+    image: arivo-api:dev
+    env_file: ../.env
+    environment:
+      ENV: local
+      REDIS_URL: redis://redis:6379/0
+      SEED_DIR: /srv/seed/places
+      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:54322/postgres
+    ports: ["8787:8080"]  # host 8787 (8080 is often taken on dev machines) → container 8080 (Cloud Run default)
+    depends_on: [redis]
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["6379:6379"]

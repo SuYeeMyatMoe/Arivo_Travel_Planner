@@ -1,0 +1,26 @@
+Metadata-Version: 2.4
+Name: arivo-api
+Version: 0.1.0
+Summary: Arivo — Living AI Travel OS backend (FastAPI + LangGraph)
+Requires-Python: >=3.11
+Requires-Dist: fastapi==0.115.12
+Requires-Dist: uvicorn[standard]==0.34.2
+Requires-Dist: pydantic==2.11.4
+Requires-Dist: pydantic-settings==2.9.1
+Requires-Dist: httpx==0.28.1
+Requires-Dist: anthropic>=0.60
+Requires-Dist: langgraph<2,>=0.4
+Requires-Dist: langchain-core<2,>=0.3
+Requires-Dist: ortools==9.12.4544
+Requires-Dist: h3==4.2.2
+Requires-Dist: asyncpg==0.30.0
+Requires-Dist: redis==5.2.1
+Requires-Dist: pyjwt[crypto]==2.10.1
+Requires-Dist: cryptography>=44
+Requires-Dist: stripe<13,>=11
+Requires-Dist: tzdata
+Provides-Extra: dev
+Requires-Dist: pytest==8.3.5; extra == "dev"
+Requires-Dist: pytest-asyncio==0.26.0; extra == "dev"
+Requires-Dist: respx==0.22.0; extra == "dev"
+Requires-Dist: ruff==0.11.8; extra == "dev"

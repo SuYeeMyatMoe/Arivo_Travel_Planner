@@ -1,0 +1,30 @@
+# deps / builds
+node_modules/
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+*.tsbuildinfo
+
+# local artifacts
+tools/mascot-forge/out/
+assets/mascot/*.raw.glb
+supabase/.temp/
+supabase/.branches/
+
+# secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+design/system/.check/
+tools/seed/.cache/

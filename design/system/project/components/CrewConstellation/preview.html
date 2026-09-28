@@ -1,0 +1,21 @@
+<!-- @dsCard group="Arivo Crew" height=330 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>CrewConstellation — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.CrewConstellation, { label: 'Crew of four: shared food, a nightlife conflict',
+      members: [{ name: 'Alex' }, { name: 'Mia' }, { name: 'Sam' }, { name: 'Jo' }],
+      links: [ { a: 0, b: 1, label: 'nightlife', conflict: true }, { a: 1, b: 2, label: 'photography' }, { a: 2, b: 3, label: 'street food' }, { a: 3, b: 0, label: 'food' } ],
+      balance: [ { name: 'Alex', share: 25, note: 'Evening: Golden Gai' }, { name: 'Mia', share: 30, note: 'Morning: museum' }, { name: 'Sam', share: 22, note: 'Lunch: Ameyoko' }, { name: 'Jo', share: 23, note: 'Sunset: Shibuya Sky' } ] }));
+</script>
+</body>
+</html>

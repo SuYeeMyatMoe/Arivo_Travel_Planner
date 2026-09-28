@@ -1,0 +1,20 @@
+<!-- @dsCard group="Bookings" height=400 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>PriceBreakdown — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.PriceBreakdown, { currency: 'MYR', changedFrom: 1280, total: 1347, action: 'Confirm & pay RM 1,347',
+      lines: [ { label: 'Base fare', amount: 1102 }, { label: 'Taxes', amount: 187 }, { label: 'Checked bag (23 kg)', amount: 58 }, { label: 'Booking fee', amount: 0 } ],
+      terms: ['Changes allowed · RM 150 fee + fare difference', 'Refund on cancellation: taxes only (RM 187)'] }));
+</script>
+</body>
+</html>

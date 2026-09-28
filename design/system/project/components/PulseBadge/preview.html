@@ -1,0 +1,20 @@
+<!-- @dsCard group="Arivo Pulse" height=330 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>PulseBadge — preview</title>
+<style>
+  body { padding: 16px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .stack { display: grid; gap: 12px; max-width: 460px; }
+  .stack p { margin: 0; }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+  var A = window.Arivo, h = React.createElement;
+  ReactDOM.createRoot(document.getElementById('root')).render(h(A.PulseBadge, { score: 86, label: 'Rising this week', expanded: true, sources: 4, updated: '18 min ago',
+      evidence: [ { name: 'Burst vs baseline', weight: 0.28 * 0.9, value: '+64%' }, { name: 'Velocity', weight: 0.2 * 0.8, value: '0.80' }, { name: 'Recency', weight: 0.16 * 0.95, value: '2 d' }, { name: 'Source diversity', weight: 0.12 * 0.7, value: '4' }, { name: 'Local event', weight: 0.1, value: 'Sat' } ],
+      facts: ['Night market opens this weekend (city event calendar)', '3 travel publications this week'] }));
+</script>
+</body>
+</html>

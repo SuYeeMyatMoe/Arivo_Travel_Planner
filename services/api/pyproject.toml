@@ -1,0 +1,43 @@
+[project]
+name = "arivo-api"
+version = "0.1.0"
+description = "Arivo — Living AI Travel OS backend (FastAPI + LangGraph)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.115.12",
+  "uvicorn[standard]==0.34.2",
+  "pydantic==2.11.4",
+  "pydantic-settings==2.9.1",
+  "httpx==0.28.1",
+  "anthropic>=1,<2",
+  "langgraph>=0.4,<2",
+  "langchain-core>=0.3,<2",
+  "ortools==9.12.4544",
+  "h3==4.2.2",
+  "asyncpg==0.30.0",
+  "redis==5.2.1",
+  "pyjwt[crypto]==2.10.1",
+  "cryptography>=44",
+  "stripe>=11,<13",
+  "tzdata",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.5", "pytest-asyncio==0.26.0", "respx==0.22.0", "ruff==0.11.8"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

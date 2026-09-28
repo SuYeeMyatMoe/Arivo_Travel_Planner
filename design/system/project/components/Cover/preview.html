@@ -1,0 +1,46 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Arivo — cover</title>
+<style>
+  html, body { margin: 0; background: var(--surface); }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--surface); }
+  .cover svg { position: absolute; inset: 0; }
+  .b-volt { fill: var(--volt); }
+  .b-signal { fill: var(--signal); }
+  .b-lantern { fill: var(--lantern); }
+  .b-ink { fill: var(--text); }
+  .cut { fill: var(--surface); }
+  .thread { fill: none; stroke: var(--surface); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 12 10; }
+  .perf { fill: none; stroke: var(--text); stroke-width: 2; stroke-dasharray: 8 8; opacity: 0.55; }
+  .node { fill: var(--surface); stroke: var(--text); stroke-width: 4; }
+  .r-m { rx: var(--radius-m); }
+  .name { position: absolute; left: 40px; bottom: 58px; margin: 0; font-family: var(--font-display); font-size: 120px; line-height: 0.92; font-weight: 400; letter-spacing: -2.4px; color: var(--text); }
+  .tag { position: absolute; left: 44px; bottom: 32px; margin: 0; max-width: 440px; font-family: var(--font-ui); font-size: 14px; line-height: 18px; color: var(--text-muted); }
+</style></head>
+<body>
+<div class="cover">
+  <svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <!--
+      blocks: volt 176×232 (space-16·2.75, bleeds top) · signal 240×112 (bleeds right) · lantern 128×136 (bleeds bottom) · ink(text) 96×136 (bleeds bottom-right)
+      arrangement: one tall volt slab (the one primary action) with three satellites stepping down-right, like stops along a day
+      pattern: literal motif — the Route Thread + boarding-pass: a dashed thread in the ground colour links the blocks through three stop nodes, and the volt slab is cut as a ticket (two notches + perforation) because every Arivo booking is a ticket and every day a thread
+      scales: pitch space-4 (16px) multiples; corners radius-m (22px); notches r = radius-m/2; thread dash 12/10, node r 10 (space-2 + 2)
+    -->
+    <rect class="b-volt r-m" x="560" y="-24" width="176" height="232"></rect>
+    <rect class="b-signal r-m" x="752" y="48" width="240" height="112"></rect>
+    <rect class="b-lantern r-m" x="752" y="176" width="128" height="136"></rect>
+    <rect class="b-ink r-m" x="896" y="176" width="96" height="136"></rect>
+    <circle class="cut" cx="560" cy="144" r="11"></circle>
+    <circle class="cut" cx="736" cy="144" r="11"></circle>
+    <line class="perf" x1="576" y1="144" x2="720" y2="144"></line>
+    <path class="thread" d="M 608 64 C 672 64 700 104 780 104 S 864 120 864 150 S 816 232 848 244"></path>
+    <circle class="node" cx="608" cy="64" r="10"></circle>
+    <circle class="node" cx="780" cy="104" r="10"></circle>
+    <circle class="node" cx="848" cy="244" r="10"></circle>
+  </svg>
+  <h1 class="name">Arivo</h1>
+  <p class="tag">Your trip isn't generated once. It travels with you.</p>
+</div>
+</body>
+</html>

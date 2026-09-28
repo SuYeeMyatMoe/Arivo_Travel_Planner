@@ -1,0 +1,20 @@
+{
+  "name": "arivo-mascot-forge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reproducible pipeline that upgrades the Miibot base model into Ari, the Arivo explorer mascot.",
+  "scripts": {
+    "inspect": "node src/inspect.mjs ../../assets/mascot/source/miibot_source.glb",
+    "build": "node src/forge.mjs",
+    "preview": "node src/serve.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "4.5.0",
+    "@gltf-transform/extensions": "4.5.0",
+    "@gltf-transform/functions": "4.5.0",
+    "meshoptimizer": "1.2.0",
+    "sharp": "0.35.4",
+    "three": "0.186.0"
+  }
+}
