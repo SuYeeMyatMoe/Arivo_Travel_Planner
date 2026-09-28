@@ -255,17 +255,27 @@ class PackingNotifier extends Notifier<List<PackingItem>?> {
   final String tripId;
   String get _key => 'arivo.packing.$tripId';
 
+  bool _loaded = false;
+  List<PackingItem>? _pendingSeed;
+
   @override
   List<PackingItem>? build() {
     _load();
-    return null; // null = not loaded yet → screen seeds suggestions
+    return null; // null = still loading from storage
   }
 
   Future<void> _load() async {
+    List<PackingItem>? stored;
     try {
       final raw = (await SharedPreferences.getInstance()).getString(_key);
-      if (raw != null) state = (jsonDecode(raw) as List).map((e) => PackingItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      if (raw != null) stored = (jsonDecode(raw) as List).map((e) => PackingItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
     } catch (_) {}
+    _loaded = true;
+    if (stored != null) {
+      state = stored;
+    } else if (_pendingSeed != null) {
+      _set(_pendingSeed!);
+    }
   }
 
   void _set(List<PackingItem> items) {
@@ -273,8 +283,13 @@ class PackingNotifier extends Notifier<List<PackingItem>?> {
     _save(_key, items.map((e) => e.toJson()).toList());
   }
 
+  /// Suggested items for a trip with no saved list. Safe to call before storage has loaded.
   void seed(List<PackingItem> items) {
-    if (state == null) _set(items);
+    if (!_loaded) {
+      _pendingSeed = items;
+    } else if (state == null) {
+      _set(items);
+    }
   }
 
   void toggle(int i) => _set([...state!]..[i] = state![i].toggled());

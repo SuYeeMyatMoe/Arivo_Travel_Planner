@@ -15,6 +15,10 @@ import '../../core/ui/commerce_widgets.dart';
 import '../../core/ui/primitives.dart';
 import '../../state/providers.dart';
 import '../common/change_sheet.dart';
+import '../../core/data/destinations.dart';
+import '../../core/ui/clean.dart';
+import '../../state/session.dart';
+import '../home/home_screen.dart';
 import '../shell/app_shell.dart';
 
 const _dims = {
@@ -23,57 +27,178 @@ const _dims = {
   'localDiscovery': 'Local finds',
 };
 
-/// YOU: Taste DNA, Budget Brain, My Bookings, privacy and attributions.
-class YouScreen extends ConsumerWidget {
-  const YouScreen({super.key});
+/// Profile & Settings: who you are, travel preferences, notifications, currency, bookings, privacy, help, log out.
+class ProfileScreen extends ConsumerWidget {
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trip = ref.watch(tripProvider).value;
-    final t = context.type;
+    final s = ref.watch(sessionProvider);
+    final p = context.palette, t = context.type;
     return Scaffold(
-      body: SafeArea(
-        child: PageWidth(
-          child: ListView(padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, ArivoSpace.s4, ArivoSpace.s4, 120), children: [
-            Text('You', style: t.displayL),
-            if (trip != null) Text(trip.title, style: t.caption),
-            const SizedBox(height: ArivoSpace.s5),
-            if (trip == null)
-              StateMessage(title: 'No trip yet', body: 'Plan one and your budget, bookings and Taste DNA live here.', action: 'Plan a trip', onAction: () => context.go('/start'))
-            else ...[
-              _Section(title: 'Budget Brain', child: _BudgetPanel(trip: trip)),
-              _Section(title: 'My bookings', child: const _Bookings()),
-              _Section(title: 'Taste DNA', child: _TasteDna(trip: trip)),
-            ],
-            _Section(title: 'Privacy', child: _Privacy(trip: trip)),
-            _Section(title: 'About', child: const _About()),
+      appBar: AppBar(title: Text('Profile & Settings', style: t.titleL)),
+      body: PageWidth(
+        child: ListView(padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, ArivoSpace.s2, ArivoSpace.s4, 120), children: [
+          Row(children: [
+            Avatar(name: s.name, size: 60),
+            const SizedBox(width: ArivoSpace.s4),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text((s.name ?? '').isEmpty ? 'Traveller' : s.name!, style: t.titleL),
+                Text(s.email ?? '', style: t.bodyM.copyWith(color: p.muted)),
+              ]),
+            ),
           ]),
-        ),
+          const SizedBox(height: ArivoSpace.s5),
+          const Divider(),
+          SettingsRow(icon: Icons.person_outline_rounded, title: 'Edit Profile', onTap: () => _editName(context, ref, s.name)),
+          SettingsRow(icon: Icons.tune_rounded, title: 'Travel Preferences', onTap: () => context.push('/profile/preferences')),
+          SettingsRow(
+            icon: Icons.notifications_none_rounded,
+            title: 'Notifications',
+            trailing: Switch(value: s.notifications, onChanged: (v) => ref.read(sessionProvider.notifier).setNotifications(v)),
+          ),
+          SettingsRow(icon: Icons.payments_outlined, title: 'Currency', value: s.currency, onTap: () => _pickCurrency(context, ref, s.currency)),
+          const SettingsRow(icon: Icons.language_rounded, title: 'Language', value: 'English'),
+          const Divider(),
+          SettingsRow(icon: Icons.confirmation_number_outlined, title: 'My Bookings', onTap: () => context.push('/bookings')),
+          SettingsRow(icon: Icons.luggage_outlined, title: 'My Trips', onTap: () => context.go('/trips')),
+          SettingsRow(
+            icon: Icons.add_road_rounded,
+            title: 'Plan a new trip',
+            onTap: () {
+              ref.read(setupDraftProvider.notifier).reset();
+              context.push(s.interests.isEmpty ? '/setup/interests' : '/setup/where');
+            },
+          ),
+          const Divider(),
+          SettingsRow(icon: Icons.privacy_tip_outlined, title: 'Privacy', onTap: () => context.push('/profile/privacy')),
+          SettingsRow(icon: Icons.help_outline_rounded, title: 'Help & About', onTap: () => context.push('/profile/about')),
+          const Divider(),
+          SettingsRow(
+            icon: Icons.logout_rounded,
+            title: 'Log Out',
+            danger: true,
+            onTap: () {
+              ref.read(sessionProvider.notifier).signOut();
+              context.go('/signin');
+            },
+          ),
+        ]),
       ),
     );
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.child});
+Future<void> _editName(BuildContext context, WidgetRef ref, String? current) async {
+  final c = TextEditingController(text: current ?? '');
+  final name = await showDialog<String>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Edit Profile'),
+      content: TextField(controller: c, autofocus: true, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(hintText: 'Your name')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(ctx, c.text.trim()), child: const Text('Save')),
+      ],
+    ),
+  );
+  if (name != null && name.isNotEmpty) ref.read(sessionProvider.notifier).setName(name);
+}
+
+Future<void> _pickCurrency(BuildContext context, WidgetRef ref, String current) async {
+  final picked = await showModalBottomSheet<String>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        for (final (code, name) in const [('USD', 'US Dollar'), ('MYR', 'Malaysian Ringgit'), ('SGD', 'Singapore Dollar'), ('EUR', 'Euro'), ('JPY', 'Japanese Yen')])
+          ListTile(
+            title: Text('$code · $name'),
+            trailing: code == current ? Icon(Icons.check_rounded, color: ctx.palette.volt) : null,
+            onTap: () => Navigator.pop(ctx, code),
+          ),
+      ]),
+    ),
+  );
+  if (picked != null) ref.read(sessionProvider.notifier).setCurrency(picked);
+}
+
+/// Scaffold for a simple pushed settings page.
+class _Page extends StatelessWidget {
+  const _Page({required this.title, required this.children});
   final String title;
-  final Widget child;
+  final List<Widget> children;
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: ArivoSpace.s6),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(title, style: context.type.titleL),
-          const SizedBox(height: ArivoSpace.s3),
-          child,
-        ]),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text(title, style: context.type.titleM.copyWith(fontWeight: FontWeight.w700))),
+        body: PageWidth(child: ListView(padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, ArivoSpace.s2, ArivoSpace.s4, ArivoSpace.s8), children: children)),
       );
+}
+
+class PreferencesPage extends ConsumerWidget {
+  const PreferencesPage({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(sessionProvider);
+    final trip = ref.watch(tripProvider).value;
+    final t = context.type;
+    final sign = s.currency == 'USD' ? r'$' : '${s.currency} ';
+    return _Page(title: 'Travel Preferences', children: [
+      Text('Interests', style: t.titleM),
+      const SizedBox(height: ArivoSpace.s2),
+      Wrap(spacing: ArivoSpace.s2, runSpacing: ArivoSpace.s2, children: [
+        for (final i in interests)
+          FilterChip(
+            label: Text(i.label),
+            selected: s.interests.contains(i.key),
+            onSelected: (on) => ref.read(sessionProvider.notifier).setInterests(on ? [...s.interests, i.key] : s.interests.where((x) => x != i.key).toList()),
+          ),
+      ]),
+      const SizedBox(height: ArivoSpace.s5),
+      Text('Budget per day', style: t.titleM),
+      const SizedBox(height: ArivoSpace.s2),
+      SegmentedButton<String>(
+        showSelectedIcon: false,
+        segments: const [ButtonSegment(value: 'budget', label: Text('Budget')), ButtonSegment(value: 'mid', label: Text('Mid-range')), ButtonSegment(value: 'luxury', label: Text('Luxury'))],
+        selected: {s.budgetTier},
+        onSelectionChanged: (v) => ref.read(sessionProvider.notifier).setBudget(v.first, switch (v.first) { 'budget' => 80, 'luxury' => 500, _ => 200 }),
+      ),
+      const SizedBox(height: ArivoSpace.s1),
+      Text('About $sign${s.dailyBudget.round()} per person per day. Used for new trips.', style: t.caption),
+      const SizedBox(height: ArivoSpace.s6),
+      if (trip != null) ...[
+        Text('Taste DNA for this trip', style: t.titleM),
+        const SizedBox(height: ArivoSpace.s2),
+        TasteDnaSection(trip: trip),
+      ],
+    ]);
+  }
+}
+
+class BookingsPage extends StatelessWidget {
+  const BookingsPage({super.key});
+  @override
+  Widget build(BuildContext context) => const _Page(title: 'My Bookings', children: [BookingsSection()]);
+}
+
+class PrivacyPage extends ConsumerWidget {
+  const PrivacyPage({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _Page(title: 'Privacy', children: [PrivacySection(trip: ref.watch(tripProvider).value)]);
+}
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+  @override
+  Widget build(BuildContext context) => const _Page(title: 'Help & About', children: [AboutSection()]);
 }
 
 // ------------------------------------------------------------------------------------------------------------ Budget
 
-class _BudgetPanel extends ConsumerWidget {
-  const _BudgetPanel({required this.trip});
+class BudgetPanel extends ConsumerWidget {
+  const BudgetPanel({super.key, required this.trip, this.showGauge = true});
   final Trip trip;
+  final bool showGauge;
 
   Future<void> _applySuggestion(BuildContext context, WidgetRef ref, Json s) async {
     try {
@@ -95,8 +220,7 @@ class _BudgetPanel extends ConsumerWidget {
           data: (b) {
             if (b == null) return const SizedBox.shrink();
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              BudgetGauge(view: b),
-              const SizedBox(height: ArivoSpace.s4),
+              if (showGauge) ...[BudgetGauge(view: b), const SizedBox(height: ArivoSpace.s4)],
               for (final l in b.lines.where((l) => (l['planned'] as num) > 0 || (l['spent'] as num) > 0 || (l['reserved'] as num) > 0))
                 Semantics(
                   label: '${titleCase(l['category'] as String)}: ${moneyOf((l['spent'] as num).toDouble() + (l['reserved'] as num).toDouble(), b.currency)} '
@@ -131,7 +255,7 @@ class _BudgetPanel extends ConsumerWidget {
                 ),
               const SizedBox(height: ArivoSpace.s3),
               Row(children: [
-                Expanded(child: ArivoButton('Add expense', kind: ButtonKind.tonal, icon: Icons.add, onPressed: () => _addExpense(context, ref, trip))),
+                Expanded(child: ArivoButton('Add expense', kind: ButtonKind.tonal, icon: Icons.add, onPressed: () => addExpense(context, ref, trip))),
                 const SizedBox(width: ArivoSpace.s2),
                 Expanded(child: ArivoButton('Scan receipt', kind: ButtonKind.tonal, icon: Icons.receipt_long_outlined, onPressed: () => context.push('/lens/receipt'))),
               ]),
@@ -141,7 +265,7 @@ class _BudgetPanel extends ConsumerWidget {
   }
 }
 
-Future<void> _addExpense(BuildContext context, WidgetRef ref, Trip trip) async {
+Future<void> addExpense(BuildContext context, WidgetRef ref, Trip trip) async {
   final amount = TextEditingController();
   final merchant = TextEditingController();
   var category = 'food';
@@ -200,8 +324,8 @@ Future<void> _addExpense(BuildContext context, WidgetRef ref, Trip trip) async {
 
 // ---------------------------------------------------------------------------------------------------------- Bookings
 
-class _Bookings extends ConsumerWidget {
-  const _Bookings();
+class BookingsSection extends ConsumerWidget {
+  const BookingsSection({super.key});
 
   Future<void> _cancel(BuildContext context, WidgetRef ref, BookingTxn txn) async {
     final api = ref.read(apiProvider);
@@ -277,14 +401,14 @@ class _Bookings extends ConsumerWidget {
 
 // ---------------------------------------------------------------------------------------------------------- Taste DNA
 
-class _TasteDna extends ConsumerStatefulWidget {
-  const _TasteDna({required this.trip});
+class TasteDnaSection extends ConsumerStatefulWidget {
+  const TasteDnaSection({super.key, required this.trip});
   final Trip trip;
   @override
-  ConsumerState<_TasteDna> createState() => _TasteDnaState();
+  ConsumerState<TasteDnaSection> createState() => _TasteDnaSectionState();
 }
 
-class _TasteDnaState extends ConsumerState<_TasteDna> {
+class _TasteDnaSectionState extends ConsumerState<TasteDnaSection> {
   late Map<String, String> _votes = _fromTrip();
   bool _busy = false, _dirty = false;
 
@@ -298,7 +422,7 @@ class _TasteDnaState extends ConsumerState<_TasteDna> {
   }
 
   @override
-  void didUpdateWidget(_TasteDna old) {
+  void didUpdateWidget(TasteDnaSection old) {
     super.didUpdateWidget(old);
     if (!_dirty && old.trip.version != widget.trip.version) _votes = _fromTrip();
   }
@@ -352,14 +476,14 @@ class _TasteDnaState extends ConsumerState<_TasteDna> {
 
 // ------------------------------------------------------------------------------------------------------------ Privacy
 
-class _Privacy extends ConsumerStatefulWidget {
-  const _Privacy({required this.trip});
+class PrivacySection extends ConsumerStatefulWidget {
+  const PrivacySection({super.key, required this.trip});
   final Trip? trip;
   @override
-  ConsumerState<_Privacy> createState() => _PrivacyState();
+  ConsumerState<PrivacySection> createState() => _PrivacySectionState();
 }
 
-class _PrivacyState extends ConsumerState<_Privacy> {
+class _PrivacySectionState extends ConsumerState<PrivacySection> {
   bool? _private;
 
   Future<void> _setPrivate(bool v) async {
@@ -409,8 +533,8 @@ class _PrivacyState extends ConsumerState<_Privacy> {
 
 // -------------------------------------------------------------------------------------------------------------- About
 
-class _About extends StatelessWidget {
-  const _About();
+class AboutSection extends StatelessWidget {
+  const AboutSection({super.key});
   @override
   Widget build(BuildContext context) {
     final t = context.type;

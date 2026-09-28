@@ -1,25 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/ari/ari.dart';
+import '../../core/format.dart';
 import '../../core/models/models.dart';
 import '../../core/net/api.dart';
 import '../../core/theme/arivo_theme.dart';
 import '../../core/theme/tokens.g.dart';
+import '../../core/ui/clean.dart';
 import '../../core/ui/commerce_widgets.dart';
 import '../../core/ui/primitives.dart';
 import '../../state/providers.dart';
-import '../common/change_sheet.dart';
+import '../places/place_screens.dart';
 import '../shell/app_shell.dart';
 
-const _lanes = [('for_you', 'For you'), ('iconic', 'Iconic'), ('local', 'Local'), ('pulse', 'Pulse'), ('food', 'Food'), ('night', 'Night'), ('stay', 'Stay')];
+const _lanes = [('for_you', 'All'), ('iconic', 'Iconic'), ('local', 'Local gems'), ('food', 'Food'), ('night', 'Nightlife'), ('stay', 'Stays'), ('pulse', 'Trending')];
+const _cities = [('tokyo', 'Tokyo'), ('kyoto', 'Kyoto'), ('kuala-lumpur', 'Kuala Lumpur')];
 
+/// Defaults to the current trip's first city; the picker overrides it.
 final _cityProvider = NotifierProvider<_City, String>(_City.new);
 
 class _City extends Notifier<String> {
   @override
-  String build() => 'tokyo';
+  String build() {
+    final c = ref.watch(tripProvider).value?.cities.firstOrNull;
+    return _cities.any((x) => x.$1 == c) ? c! : 'tokyo';
+  }
+
   void set(String c) => state = c;
 }
 
@@ -31,132 +40,162 @@ class _Lane extends Notifier<String> {
   void set(String l) => state = l;
 }
 
-final _sliderProvider = NotifierProvider<_Slider, double>(_Slider.new);
+final _queryProvider = NotifierProvider<_Query, String>(_Query.new);
 
-class _Slider extends Notifier<double> {
+class _Query extends Notifier<String> {
   @override
-  double build() => 0;
-  void set(double v) => state = v;
+  String build() => '';
+  void set(String q) => state = q;
 }
 
 final _resultsProvider = FutureProvider.autoDispose<(List<Place>, List<Json>)>((ref) async {
-  final city = ref.watch(_cityProvider), lane = ref.watch(_laneProvider), slider = ref.watch(_sliderProvider);
+  final city = ref.watch(_cityProvider), lane = ref.watch(_laneProvider), q = ref.watch(_queryProvider).trim();
   final api = ref.read(apiProvider);
   if (lane == 'pulse') {
     final j = await api.get('/v1/pulse', query: {'city': city}) as Map;
     return (const <Place>[], List<Json>.from((j['items'] as List).map((e) => Map<String, dynamic>.from(e as Map))));
   }
-  final j = await api.get('/v1/places/search', query: {'city': city, 'lane': lane, 'iconic_local': slider.toStringAsFixed(2), 'limit': 24}) as Map;
+  final j = await api.get('/v1/places/search', query: {'city': city, 'lane': lane, if (q.length >= 2) 'q': q, 'limit': 30}) as Map;
   return ((j['results'] as List).map((e) => Place.fromJson(Map<String, dynamic>.from(e as Map))).toList(), const <Json>[]);
 });
 
-/// Explore: Iconic · Local · Pulse · For you — mixed on purpose, every card explains itself.
-class ExploreScreen extends ConsumerWidget {
+/// Explore / Activities: search, category chips, photo cards. Every card explains itself and can be saved or added.
+class ExploreScreen extends ConsumerStatefulWidget {
   const ExploreScreen({super.key});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = context.type;
-    final lane = ref.watch(_laneProvider), city = ref.watch(_cityProvider);
-    final results = ref.watch(_resultsProvider);
-    return Scaffold(
-      body: SafeArea(
-        child: PageWidth(
-          child: CustomScrollView(slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, ArivoSpace.s4, ArivoSpace.s4, 0),
-              sliver: SliverList.list(children: [
-                Row(children: [
-                  Expanded(child: Text('Explore', style: t.displayM)),
-                  DropdownButton<String>(
-                    value: city,
-                    underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(value: 'tokyo', child: Text('Tokyo')),
-                      DropdownMenuItem(value: 'kyoto', child: Text('Kyoto')),
-                      DropdownMenuItem(value: 'kuala-lumpur', child: Text('Kuala Lumpur')),
-                    ],
-                    onChanged: (v) => v == null ? null : ref.read(_cityProvider.notifier).set(v),
-                  ),
-                ]),
-                const SizedBox(height: ArivoSpace.s3),
-                _SendToTrip(),
-                const SizedBox(height: ArivoSpace.s3),
-                SizedBox(
-                  height: 44,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _lanes.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: ArivoSpace.s2),
-                    itemBuilder: (_, i) => ChoiceChip(
-                      label: Text(_lanes[i].$2),
-                      selected: lane == _lanes[i].$1,
-                      onSelected: (_) => ref.read(_laneProvider.notifier).set(_lanes[i].$1),
-                    ),
-                  ),
-                ),
-                if (lane != 'pulse' && lane != 'stay') ...[
-                  const SizedBox(height: ArivoSpace.s2),
-                  Row(children: [
-                    Text('Iconic', style: t.caption),
-                    Expanded(
-                      child: Slider(
-                        value: ref.watch(_sliderProvider),
-                        min: -1,
-                        max: 1,
-                        divisions: 4,
-                        label: 'Iconic ← Balanced → Local',
-                        onChanged: (v) => ref.read(_sliderProvider.notifier).set(v),
-                      ),
-                    ),
-                    Text('Local', style: t.caption),
-                  ]),
-                ],
-                if (lane == 'pulse') _PulseHeader(city: city),
-                const SizedBox(height: ArivoSpace.s2),
-              ]),
-            ),
-            results.when(
-              loading: () => const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))),
-              error: (e, _) => SliverToBoxAdapter(child: StateMessage(title: 'Explore is unavailable', body: '$e', icon: Icons.cloud_off)),
-              data: (r) {
-                final (places, pulse) = r;
-                if (lane == 'pulse') {
-                  if (pulse.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: StateMessage(
-                        title: 'No evidence yet',
-                        body: 'Arivo Pulse only shows places with real signals (Wikipedia attention, news coverage, events). Refresh to collect them.',
-                        icon: Icons.monitor_heart_outlined,
-                      ),
-                    );
-                  }
-                  return SliverList.builder(itemCount: pulse.length, itemBuilder: (_, i) => _PulseCard(item: pulse[i]));
-                }
-                if (places.isEmpty) return const SliverToBoxAdapter(child: StateMessage(title: 'No verified places here yet'));
-                return SliverList.builder(itemCount: places.length, itemBuilder: (_, i) => _PlaceCard(place: places[i]));
-              },
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 120)),
-          ]),
-        ),
-      ),
-    );
-  }
+  ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-Future<void> _addToTrip(BuildContext context, WidgetRef ref, String placeId) async {
-  final trip = await ref.read(tripProvider.future);
-  if (trip == null) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Plan a trip first, then add places to it.')));
-    return;
+class _ExploreScreenState extends ConsumerState<ExploreScreen> {
+  final _search = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _search.text = ref.read(_queryProvider);
   }
-  try {
-    final j = await ref.read(apiProvider).post('/v1/trips/${trip.id}/add-place', body: {'place_id': placeId}) as Map;
-    final change = TripChange.fromJson(Map<String, dynamic>.from(j['change'] as Map));
-    if (context.mounted) await showChangeSheet(context, ref, change, title: 'Add to your trip?');
-  } on ApiError catch (e) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _linkSheet() => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => Padding(
+          padding: EdgeInsets.fromLTRB(ArivoSpace.s5, 0, ArivoSpace.s5, ArivoSpace.s5 + MediaQuery.viewInsetsOf(ctx).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('Add from a video', style: ctx.type.titleL),
+            const SizedBox(height: ArivoSpace.s2),
+            Text('Paste a public YouTube, TikTok or Vimeo link — Ari finds the place it shows.', style: ctx.type.bodyM.copyWith(color: ctx.palette.muted)),
+            const SizedBox(height: ArivoSpace.s4),
+            _SendToTrip(),
+          ]),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette, t = context.type;
+    final lane = ref.watch(_laneProvider), city = ref.watch(_cityProvider);
+    final results = ref.watch(_resultsProvider);
+    final cityName = _cities.firstWhere((c) => c.$1 == city).$2;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Explore', style: t.titleL),
+        actions: [
+          IconButton(tooltip: 'Add from a video link', icon: const Icon(Icons.add_link_rounded), onPressed: _linkSheet),
+          PopupMenuButton<String>(
+            tooltip: 'Change city',
+            initialValue: city,
+            onSelected: (v) => ref.read(_cityProvider.notifier).set(v),
+            itemBuilder: (_) => [for (final (k, n) in _cities) PopupMenuItem(value: k, child: Text(n))],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: ArivoSpace.s3),
+              child: Row(children: [
+                Icon(Icons.place_outlined, size: 18, color: p.voltText),
+                const SizedBox(width: 2),
+                Text(cityName, style: t.label.copyWith(color: p.voltText)),
+                Icon(Icons.expand_more_rounded, size: 18, color: p.voltText),
+              ]),
+            ),
+          ),
+        ],
+      ),
+      body: PageWidth(
+        child: CustomScrollView(slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, 0, ArivoSpace.s4, 0),
+            sliver: SliverList.list(children: [
+              TextField(
+                controller: _search,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (v) => ref.read(_queryProvider.notifier).set(v),
+                decoration: InputDecoration(
+                  hintText: 'Search activities in $cityName',
+                  prefixIcon: Icon(Icons.search_rounded, color: p.muted),
+                  suffixIcon: _search.text.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () {
+                            _search.clear();
+                            ref.read(_queryProvider.notifier).set('');
+                            setState(() {});
+                          },
+                        ),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: ArivoSpace.s3),
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _lanes.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: ArivoSpace.s2),
+                  itemBuilder: (_, i) => ChoiceChip(
+                    showCheckmark: false,
+                    label: Text(_lanes[i].$2),
+                    selected: lane == _lanes[i].$1,
+                    onSelected: (_) => ref.read(_laneProvider.notifier).set(_lanes[i].$1),
+                  ),
+                ),
+              ),
+              if (lane == 'pulse') _PulseHeader(city: city),
+              const SizedBox(height: ArivoSpace.s3),
+            ]),
+          ),
+          results.when(
+            loading: () => const SliverToBoxAdapter(child: Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))),
+            error: (e, _) => SliverToBoxAdapter(
+              child: StateMessage(title: 'Explore is unavailable', body: '$e', action: 'Try again', onAction: () => ref.invalidate(_resultsProvider), icon: Icons.cloud_off),
+            ),
+            data: (r) {
+              final (places, pulse) = r;
+              if (lane == 'pulse') {
+                if (pulse.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: StateMessage(
+                      title: 'No evidence yet',
+                      body: 'Trending only shows places with real signals (Wikipedia attention, news coverage, events). Refresh to collect them.',
+                      icon: Icons.monitor_heart_outlined,
+                    ),
+                  );
+                }
+                return SliverList.builder(itemCount: pulse.length, itemBuilder: (_, i) => _PulseCard(item: pulse[i]));
+              }
+              if (places.isEmpty) return const SliverToBoxAdapter(child: StateMessage(title: 'No verified places match', icon: Icons.search_off_rounded));
+              return SliverList.builder(itemCount: places.length, itemBuilder: (_, i) => _PlaceCard(place: places[i]));
+            },
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+        ]),
+      ),
+    );
   }
 }
 
@@ -166,43 +205,48 @@ class _PlaceCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = context.palette, t = context.type;
+    final kind = '${titleCase(place.category)}${place.iconic >= 0.45 ? ' · Iconic' : place.iconic < 0.2 ? ' · Local find' : ''}';
     return Padding(
       padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, 0, ArivoSpace.s4, ArivoSpace.s3),
-      child: Material(
-        color: p.raised,
-        borderRadius: BorderRadius.circular(ArivoRadius.m),
-        clipBehavior: Clip.antiAlias,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          PlacePhoto(photo: place.photo, fallbackColor: p.signal, height: place.photo == null ? 56 : 150),
-          Padding(
-            padding: const EdgeInsets.all(ArivoSpace.s4),
+      child: CleanCard(
+        padding: const EdgeInsets.all(ArivoSpace.s3),
+        onTap: () => context.push('/place/${Uri.encodeComponent(place.id)}'),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          NetPhoto(place.photo?['url'] as String?, width: 96, height: 96, radius: ArivoRadius.s, icon: categoryIcon(place.category)),
+          const SizedBox(width: ArivoSpace.s3),
+          Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(place.name, style: t.label.copyWith(fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 2),
               Row(children: [
-                Expanded(child: Text(place.name, style: t.titleL)),
-                if (place.matchPct != null) Text('${place.matchPct}%', style: t.monoL.copyWith(color: p.signalText)),
+                if (place.matchPct != null) ...[
+                  Icon(Icons.star_rounded, size: 15, color: p.lantern),
+                  const SizedBox(width: 2),
+                  Text('${place.matchPct}%', style: t.caption.copyWith(color: p.text, fontWeight: FontWeight.w700)),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(child: Text(kind, style: t.caption, maxLines: 1, overflow: TextOverflow.ellipsis)),
               ]),
-              Text('${place.category.replaceAll('_', ' ')}${place.iconic >= 0.5 ? ' · iconic' : place.iconic < 0.2 ? ' · local find' : ''}', style: t.caption),
-              if (place.summary != null) ...[const SizedBox(height: 6), Text(place.summary!, style: t.bodyM.copyWith(color: p.muted))],
-              const SizedBox(height: ArivoSpace.s2),
-              for (final e in place.why.take(3))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Row(children: [Expanded(child: Text('• ${e.text}', style: t.caption.copyWith(color: p.text))), ProvenanceTag(e.provenance, source: e.source)]),
+              if (place.summary != null) ...[
+                const SizedBox(height: 4),
+                Text(place.summary!, style: t.caption, maxLines: 2, overflow: TextOverflow.ellipsis),
+              ] else if (place.why.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(place.why.first.text, style: t.caption, maxLines: 2, overflow: TextOverflow.ellipsis),
+              ],
+              const SizedBox(height: ArivoSpace.s1),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                  onPressed: () => addPlaceToTrip(context, ref, place.id),
+                  icon: Icon(Icons.add_rounded, size: 18, color: p.voltText),
+                  label: Text('Add to trip', style: t.label.copyWith(color: p.voltText)),
                 ),
-              const SizedBox(height: ArivoSpace.s2),
-              Row(children: [
-                ArivoButton('Add to trip', kind: ButtonKind.tonal, icon: Icons.add, onPressed: () => _addToTrip(context, ref, place.id)),
-                const Spacer(),
-                if (place.sources.isNotEmpty)
-                  IconButton(
-                    tooltip: 'Sources',
-                    icon: const Icon(Icons.link),
-                    onPressed: () => launchUrl(Uri.parse(place.sources.first['url'] as String)),
-                  ),
-              ]),
-              if (place.photo != null) Text('${place.photo!['credit']}', style: t.caption.copyWith(fontSize: 11)),
+              ),
             ]),
           ),
+          SaveHeart(place: savedFrom(place)),
         ]),
       ),
     );
@@ -230,7 +274,7 @@ class _PulseHeaderState extends ConsumerState<_PulseHeader> {
             final j = await ref.read(apiProvider).post('/v1/pulse/refresh', query: {'city': widget.city, 'limit': 12}) as Map;
             setState(() => _status = j['status'] == 'running'
                 ? 'Already collecting evidence…'
-                : 'Collecting evidence (~${j['estimated_seconds']} s — news sources are rate-limited). Pull to refresh.');
+                : 'Collecting evidence (~${j['estimated_seconds']} s — news sources are rate-limited).');
             Future.delayed(Duration(seconds: (j['estimated_seconds'] as num?)?.toInt() ?? 60), () => ref.invalidate(_resultsProvider));
           } on ApiError catch (e) {
             setState(() => _status = e.message);
@@ -251,11 +295,9 @@ class _PulseCard extends ConsumerWidget {
     final comps = Map<String, dynamic>.from(item['components'] as Map);
     return Padding(
       padding: const EdgeInsets.fromLTRB(ArivoSpace.s4, 0, ArivoSpace.s4, ArivoSpace.s3),
-      child: Container(
-        decoration: BoxDecoration(color: p.raised, borderRadius: BorderRadius.circular(ArivoRadius.m), border: Border(top: BorderSide(color: p.lantern, width: 2))),
-        padding: const EdgeInsets.all(ArivoSpace.s4),
+      child: CleanCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(item['name'] as String, style: t.titleL),
+          Text(item['name'] as String, style: t.titleM),
           const SizedBox(height: ArivoSpace.s2),
           PulseBadge(score: item['score'] as num, label: (item['label'] as String?) ?? 'Signals collected'),
           const SizedBox(height: ArivoSpace.s3),
@@ -280,7 +322,7 @@ class _PulseCard extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: ArivoSpace.s2),
-          ArivoButton('Add to trip', kind: ButtonKind.tonal, icon: Icons.add, onPressed: () => _addToTrip(context, ref, item['place_id'] as String)),
+          ArivoButton('Add to trip', kind: ButtonKind.outline, icon: Icons.add, onPressed: () => addPlaceToTrip(context, ref, item['place_id'] as String)),
         ]),
       ),
     );
@@ -298,6 +340,12 @@ class _SendToTripState extends ConsumerState<_SendToTrip> {
   Json? _result;
   String? _error;
   bool _busy = false;
+
+  @override
+  void dispose() {
+    _url.dispose();
+    super.dispose();
+  }
 
   Future<void> _resolve() async {
     setState(() {
@@ -325,9 +373,10 @@ class _SendToTripState extends ConsumerState<_SendToTrip> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       TextField(
         controller: _url,
+        autofocus: true,
         keyboardType: TextInputType.url,
         decoration: InputDecoration(
-          hintText: 'Paste a travel video link to add its place',
+          hintText: 'https://…',
           prefixIcon: const Icon(Icons.link),
           suffixIcon: _busy
               ? const Padding(padding: EdgeInsets.all(14), child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)))
@@ -338,7 +387,7 @@ class _SendToTripState extends ConsumerState<_SendToTrip> {
       if (_error != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_error!, style: t.caption.copyWith(color: p.emberText))),
       if (_result != null)
         Padding(
-          padding: const EdgeInsets.only(top: ArivoSpace.s2),
+          padding: const EdgeInsets.only(top: ArivoSpace.s3),
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -346,9 +395,10 @@ class _SendToTripState extends ConsumerState<_SendToTrip> {
                 if (_result!['source_title'] != null) Text('From: ${_result!['source_title']}', style: t.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
               ]),
             ),
-            if (place != null) ArivoButton('Add', kind: ButtonKind.tonal, onPressed: () => _addToTrip(context, ref, place['id'] as String)),
+            if (place != null) ArivoButton('Add', kind: ButtonKind.tonal, onPressed: () => addPlaceToTrip(context, ref, place['id'] as String)),
           ]),
         ),
     ]);
   }
 }
+

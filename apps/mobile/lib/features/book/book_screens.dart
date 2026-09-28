@@ -97,7 +97,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
   @override
   Widget build(BuildContext context) {
     final p = context.palette, t = context.type;
-    final title = switch (widget.kind) { 'flight' => 'Flights', 'stay' => 'Stays', _ => 'Train · Bus · Flight' };
+    final title = switch (widget.kind) { 'flight' => 'Flights', 'stay' => 'Hotels', _ => 'Train · Bus' };
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: PageWidth(
@@ -106,7 +106,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
             showSelectedIcon: false,
             segments: const [
               ButtonSegment(value: 'flight', label: Text('Flights')),
-              ButtonSegment(value: 'stay', label: Text('Stays')),
+              ButtonSegment(value: 'stay', label: Text('Hotels')),
               ButtonSegment(value: 'ground', label: Text('Bus & train')),
             ],
             selected: {widget.kind},
@@ -353,7 +353,7 @@ class BookingSuccessScreen extends ConsumerWidget {
                 const SizedBox(height: ArivoSpace.s5),
                 ArivoButton('See it in my trip', expand: true, onPressed: () => context.go('/trip')),
                 const SizedBox(height: ArivoSpace.s2),
-                ArivoButton('Done', kind: ButtonKind.tonal, expand: true, onPressed: () => context.go('/you')),
+                ArivoButton('My bookings', kind: ButtonKind.outline, expand: true, onPressed: () => context.go('/bookings')),
               ]),
             ),
           ),

@@ -92,7 +92,7 @@ class LiveScreen extends ConsumerWidget {
               Row(children: [
                 Expanded(child: _Tile(icon: Icons.wb_sunny_outlined, title: day.weather == null ? 'Forecast' : '${day.weather!['max_c']}°C', sub: day.weather == null ? 'Available closer to the date' : 'Rain ${day.weather!['max_precip_prob']}%', live: day.weather != null)),
                 const SizedBox(width: ArivoSpace.s3),
-                Expanded(child: _Tile(icon: Icons.account_balance_wallet_outlined, title: 'Budget', sub: 'Open Budget Brain', onTap: () => context.go('/you'))),
+                Expanded(child: _Tile(icon: Icons.account_balance_wallet_outlined, title: 'Budget', sub: 'Open budget breakdown', onTap: () => context.push('/budget'))),
               ]),
               const SizedBox(height: ArivoSpace.s3),
               if (booking != null)
