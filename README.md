@@ -125,12 +125,12 @@ IBM Bob (the AI software engineering assistant) was used throughout the developm
 ```
 Arivo_Travel_Planner/
 ├── apps/
-│   ├── web/          # React · TypeScript · Vite · Three.js · Mapbox/MapLibre
-│   └── mobile/       # Flutter · Riverpod · go_router · Dio · MapLibre
+│   ├── mobile/       # THE app — Flutter · Riverpod · go_router · Dio · MapLibre (Android, iOS, web)
+│   └── web/          # Legacy React prototype, superseded by apps/mobile — no longer run
 ├── services/
 │   └── api/          # FastAPI · LangGraph/LangChain · OR-Tools · Anthropic SDK
 ├── supabase/         # Postgres 17 · PostGIS · pgvector · RLS migrations
-├── design/           # Night Cartography design tokens
+├── design/           # "Clean Blue" design tokens (tokens.json → tools/tokens/build.mjs)
 ├── assets/           # Mascot and static assets
 └── tools/
     └── mascot-forge/ # glTF-Transform + Three.js mascot build pipeline
@@ -140,7 +140,7 @@ Arivo_Travel_Planner/
 
 ## Running Locally
 
-**Prerequisites:** Python 3.11 · Node 22 · Flutter 3.47+ · Docker (optional, for Postgres only)
+**Prerequisites:** Python 3.11 · Flutter 3.47+ · Node 22 (only to regenerate design tokens) · Docker (optional, for Postgres only)
 
 ### Step 1 — Start the API
 
@@ -158,17 +158,11 @@ python -m venv .venv && .venv/bin/pip install -e ".[dev]"
 
 Runs at **http://localhost:8787**. No API keys needed — uses in-memory storage and sandbox suppliers by default.
 
-### Step 2 — Start the Web App
+### Step 2 — Start the App
 
-**Option A: React web app** (recommended) → opens at **http://127.0.0.1:5181**
+There is one app: `apps/mobile` (Flutter). It runs in the browser, on Android and on iOS.
 
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-
-**Option B: Flutter web build** → opens at **http://localhost:5180**
+**In the browser** → opens at **http://localhost:5180**
 
 ```bash
 cd apps/mobile
@@ -176,9 +170,10 @@ flutter build web --release
 python -m http.server 5180 --directory build/web
 ```
 
-### Step 3 — Mobile App (Android emulator)
+**On an Android emulator**
 
 ```bash
+cd apps/mobile
 flutter run --dart-define=ARIVO_API=http://10.0.2.2:8787
 ```
 
@@ -243,8 +238,8 @@ These are enforced in code, not just documented:
 
 ## Quick Demo (≈ 4 minutes)
 
-1. **Onboarding** — Enter: *"Tokyo, five days, three friends, RM 4,000 each, anime, food, photography, no rushing."* → tap **Build my trip**.
-2. **Trip view** — Days grouped by neighbourhood, route thread on the map. Tap a stop → **Why this?** → see evidence tagged LIVE / EST. / YOU.
+1. **Onboarding** — **Get Started** → swipe the intro → **Sign Up** (stored on the device for now) → pick interests and a budget → **Tokyo** → dates → **Friends** → **Generate my trip**. Or tap *"Or describe it in your own words"* and type: *"Tokyo, five days, three friends, RM 4,000 each, anime, food, photography, no rushing."*
+2. **Trip view** — **View Itinerary** → Trip Overview → a day's timeline, or **Map**. Tap a stop → **Why this?** → see evidence tagged LIVE / EST. / YOU → **Details** for the place page.
 3. **Pulse** — Browse trending cards with source links. **Add to trip** shows a KEPT / MOVED / ADDED diff before anything changes.
 4. **Book → Flights** — Sandbox inventory labelled **SANDBOX**. Price is revalidated at checkout. If it changed, you must re-confirm before **Confirm & pay** runs.
 5. **Rescue my day** — Type *"It started raining."* → outdoor stops move indoors, bookings stay, review the diff before applying.
