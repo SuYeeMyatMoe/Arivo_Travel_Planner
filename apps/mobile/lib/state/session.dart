@@ -170,7 +170,7 @@ class SetupDraft {
     'nature': 'nature and mountain views',
     'architecture': 'city architecture',
     'food': 'food',
-    'culture': 'culture and temples',
+    'culture': 'local culture',
     'adventure': 'adventure',
   };
 

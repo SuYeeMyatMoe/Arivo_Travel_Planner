@@ -259,5 +259,3 @@ These are enforced in code, not just documented:
 
 Ari is based on **"Miibot" by itsmejhade** (CC BY 4.0), modified with travel gear.
 Places © OpenStreetMap contributors (ODbL) · Facts from Wikidata (CC0) · Photos from Wikimedia Commons (per-photo licence) · Map tiles by OpenFreeMap / OpenMapTiles · Weather by Open-Meteo · FX rates by Frankfurter (ECB).
-
-The same credits appear in the app under **You → About**.
